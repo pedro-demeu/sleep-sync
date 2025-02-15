@@ -10,6 +10,28 @@ import {
 export default function Home() {
   const [sleepTime, setSleepTime] = useState("");
   const [fallAsleepTime, setFallAsleepTime] = useState("");
+  const [results, setResults] = useState([]);
+
+  const calculateSleepCycles = () => {
+    if (!sleepTime || !fallAsleepTime) return;
+    
+    const [hours, minutes] = sleepTime.split(":").map(Number);
+    const fallAsleepMinutes = parseInt(fallAsleepTime, 10) || 0;
+    let sleepStart = new Date();
+    sleepStart.setHours(hours, minutes + fallAsleepMinutes, 0);
+    
+    const cycleDuration = 90; // 90 minutos por ciclo
+    const cycles = 4;
+    let newResults = [];
+
+    for (let i = 1; i <= cycles; i++) {
+      let wakeUpTime = new Date(sleepStart.getTime() + cycleDuration * i * 60000);
+      let formattedTime = wakeUpTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      newResults.push({ time: formattedTime, cycle: i });
+    }
+    
+    setResults(newResults);
+  };
 
   return (
     <View style={styles.container}>
@@ -22,7 +44,7 @@ export default function Home() {
         keyboardType="numeric"
         placeholderTextColor="#aaa"
       />
-      <Text style={styles.title}>Quanto tempo você leva para pegar no sono?</Text>
+      <Text style={styles.title}>Você adormece em quantos minutos?</Text>
       <TextInput
         style={styles.input}
         placeholder="Digite o tempo (ex: 15 minutos)"
@@ -31,9 +53,19 @@ export default function Home() {
         keyboardType="numeric"
         placeholderTextColor="#aaa"
       />
-      <Pressable style={styles.button}>
+      <Pressable style={styles.button} onPress={calculateSleepCycles}>
         <Text style={styles.buttonText}>Calcular</Text>
       </Pressable>
+      {results.length > 0 && (
+        <View style={styles.resultsContainer}>
+          <Text style={styles.resultsTitle}>Horários recomendados para acordar:</Text>
+          {results.map((item, index) => (
+            <Text key={index} style={styles.resultText}>
+              {item.time} ({item.cycle} ciclo{item.cycle > 1 ? 's' : ''})
+            </Text>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -78,5 +110,19 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     fontWeight: "600",
+  },
+  resultsContainer: {
+    marginTop: 20,
+    alignItems: "center",
+  },
+  resultsTitle: {
+    fontSize: 18,
+    color: "#fff",
+    fontWeight: "600",
+    marginBottom: 10,
+  },
+  resultText: {
+    fontSize: 16,
+    color: "#ddd",
   },
 });
